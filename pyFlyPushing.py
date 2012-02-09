@@ -1,5 +1,5 @@
 #import itertools
-import logging
+#import logging
 import sys
 from django.utils import simplejson as json
 
@@ -159,6 +159,16 @@ class Fly():
 
 	def __str__(self):
 		return " ; ".join([str(chromosomeA)+' / '+str(chromosomeB) for chromosomeA,chromosomeB in self.genotype])
+
+
+class Cross():
+   def __init__(self,fly1,fly2,markers,balancers,constraints):
+      self.fly1=fly1
+      self.fly2=fly2
+      self.markers=markers
+      self.balancers=balancers
+      self.constraints=constraints
+      self.punnettSquare=punnett(fly1,fly2)
 
 def cross(gamete1,gamete2):
 	flyG=[]
