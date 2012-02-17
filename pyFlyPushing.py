@@ -45,37 +45,6 @@ def findRescuerPairs(causerList,rawRescuerList):# find a list of rescuers for ea
 	return rescuerList
 
 
-"""
-lList=[]#lethal: list of dicts
-rlList=[]#rescues lethality: list of list of dicts
-sList=[]#sterile: list of dicts
-rsList=[]#rescues sterility: list of list of dicts
-iList=[]#marker interference (cant be rescued)
-riList=[]#kept for uniformity with the other lists
-balancers=[]
-markers=[]
-def updateLists(constraintsList,balancersList,markersList):
-	global balancers
-	global markers
-	(constraints,balancers,markers)=(constraintsList,balancersList,markersList)
-	global lList
-	global rlList
-	global sList
-	global rsList
-	global iList
-	rlTemp=[]
-	rsTemp=[]
-	for constraint,tag in constraints:
-		if tag=='l':lList.append(listToDict(constraint))
-		elif tag=='rl':rlTemp.append(listToDict(constraint))
-		elif tag=='s':sList.append(listToDict(constraint))
-		elif tag=='rs':rsTemp.append(listToDict(constraint))
-		elif tag=='i':iList.append(listToDict(constraint))
-	rlList=findRescuerPairs(lList,rlTemp)	
-	rsList=findRescuerPairs(sList,rsTemp)
-	riList=findRescuerPairs(iList,[])
-"""
-
 class Environment():
 	def __init__(self,constraints,balancers,markers):
 		self.constraints=constraints
@@ -151,7 +120,7 @@ class Fly():
 			for i in range(len(causerList)):
 				if dictSubset(causerList[i],flyGeneDict):
 					rescued=False
-					print ("rescuerList",rescuerList,"causerList",causerList)
+					#print ("rescuerList",rescuerList,"causerList",causerList)
 					for rescuer in rescuerList[i]:
 						if dictSubset(rescuer,flyGeneDict):
 							rescued=True
@@ -191,36 +160,36 @@ class Fly():
 
 class Cross():
 	def __init__(self,fly1,fly2,environment):
-		print "cross"
 		self.fly1=fly1
 		self.fly2=fly2
 		self.environment=environment
-		self.punnettSquare=punnett(fly1,fly2,environment)
+		self.punnettSquare=self.punnett(fly1,fly2)
 		self.indentifiables=[]#stuff without phenotype clashes
 		self.unidentifiables=[]#stuff with phenotype clashes
 
-def makeFlyFromGametes(gamete1,gamete2,environment):
-	flyG=[]
-	warnings=[]
-	for i in range(len(gamete1)):
-		if (gamete1[i].cHash != gamete2[i].cHash) and not(gamete1[i].balancer or gamete2[i].balancer) and not(gamete1[i].Y or gamete2[i].Y):
-			warnings.append( "Warning! Recombination will occur betweeen "+str(gamete1[i])+" and "+str(gamete2[i]))
-		flyG.append([gamete1[i].geneList,gamete2[i].geneList])
-	return warnings,Fly(flyG,environment)
+	def makeFlyFromGametes(self,gamete1,gamete2):
+		flyG=[]
+		warnings=[]
+		for i in range(len(gamete1)):
+			if (gamete1[i].cHash != gamete2[i].cHash) and not(gamete1[i].balancer or gamete2[i].balancer) and not(gamete1[i].Y or gamete2[i].Y):
+				warnings.append( "Warning! Recombination will occur betweeen "+str(gamete1[i])+" and "+str(gamete2[i]))
+			flyG.append([gamete1[i].geneList,gamete2[i].geneList])
+		return warnings,Fly(flyG,self.environment)
+	
+	def punnett(self,fly1,fly2):
+		punnettSquare=[]
+		for gamete1 in fly1.gametes:
+			flyRow=[]
+			for gamete2 in fly2.gametes:
+				warnings,fly=self.makeFlyFromGametes(gamete1,gamete2)
+				flyRow.append({'warnings':warnings,
+									'Fly':fly})
+			punnettSquare.append(flyRow)
+		return (fly1.gametes,
+				  fly2.gametes,
+				  punnettSquare)
 
 
-def punnett(fly1,fly2,environment):
-	punnettSquare=[]
-	for gamete1 in fly1.gametes:
-		flyRow=[]
-		for gamete2 in fly2.gametes:
-			warnings,fly=makeFlyFromGametes(gamete1,gamete2,environment)
-			flyRow.append({'warnings':warnings,
-								'Fly':fly})
-		punnettSquare.append(flyRow)
-	return (fly1.gametes,
-			  fly2.gametes,
-			  punnettSquare)
 
 def punnettDict(fly1,fly2,child):
 	fly1AxisChr,fly2AxisChr,punnettSqr=punnett(fly1,fly2)
