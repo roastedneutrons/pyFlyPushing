@@ -44,6 +44,15 @@ def findRescuerPairs(causerList,rawRescuerList):# find a list of rescuers for ea
 		rescuerList.append(rescuers)
 	return rescuerList
 
+def makeFlyFromGametes(gamete1,gamete2,environment):
+	flyG=[]
+	warnings=[]
+	for i in range(len(gamete1)):
+		if (gamete1[i].cHash != gamete2[i].cHash) and not(gamete1[i].balancer or gamete2[i].balancer) and not(gamete1[i].Y or gamete2[i].Y):
+			warnings.append( "Warning! Recombination will occur betweeen "+str(gamete1[i])+" and "+str(gamete2[i]))
+		flyG.append([gamete1[i].geneList,gamete2[i].geneList])
+	return warnings,Fly(flyG,environment)
+
 
 class Environment():
 	def __init__(self,constraints,balancers,markers):
@@ -157,6 +166,10 @@ class Fly():
 	def __str__(self):
 		return " ; ".join([str(chromosomeA)+' / '+str(chromosomeB) for chromosomeA,chromosomeB in self.genotype])
 
+class PunnettSquare():
+	def __init__(self):
+		self.fly1Axis=[]
+		self.fly2Axis=[]
 
 class Cross():
 	def __init__(self,fly1,fly2,environment):
@@ -167,21 +180,13 @@ class Cross():
 		self.indentifiables=[]#stuff without phenotype clashes
 		self.unidentifiables=[]#stuff with phenotype clashes
 
-	def makeFlyFromGametes(self,gamete1,gamete2):
-		flyG=[]
-		warnings=[]
-		for i in range(len(gamete1)):
-			if (gamete1[i].cHash != gamete2[i].cHash) and not(gamete1[i].balancer or gamete2[i].balancer) and not(gamete1[i].Y or gamete2[i].Y):
-				warnings.append( "Warning! Recombination will occur betweeen "+str(gamete1[i])+" and "+str(gamete2[i]))
-			flyG.append([gamete1[i].geneList,gamete2[i].geneList])
-		return warnings,Fly(flyG,self.environment)
 	
 	def punnett(self,fly1,fly2):
 		punnettSquare=[]
 		for gamete1 in fly1.gametes:
 			flyRow=[]
 			for gamete2 in fly2.gametes:
-				warnings,fly=self.makeFlyFromGametes(gamete1,gamete2)
+				warnings,fly=makeFlyFromGametes(gamete1,gamete2,self.environment)
 				flyRow.append({'warnings':warnings,
 									'Fly':fly})
 			punnettSquare.append(flyRow)
@@ -189,7 +194,23 @@ class Cross():
 				  fly2.gametes,
 				  punnettSquare)
 
-
+class Bottle:
+	def __init__(self,fly,environment):
+		self.flies=[]
+		chromosomes=[]
+		for chrA,chrB in fly.genotype:
+			if chrA.cHash == chrB.cHash:
+				chromosomes.append([chrA])
+			else:
+				chromosomes.append([chrA,chrB])
+		if not(fly.genotype[0][0].Y or fly.genotype[0][1].Y):
+			chromosomes[0].append(Chromosome(['Y'],environment))
+		gametes=list(product(*chromosomes))
+		#print list(gametes)
+		for i in range(len(gametes)):
+			for j in range(len(gametes)):
+				warnings,fly=makeFlyFromGametes(gametes[i],gametes[j],environment)
+				self.flies.append(fly)
 
 def punnettDict(fly1,fly2,child):
 	fly1AxisChr,fly2AxisChr,punnettSqr=punnett(fly1,fly2)

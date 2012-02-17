@@ -97,8 +97,9 @@ markers=["Tft","e","CyO"]
 balancers=["CyO"]
 constraints=[[["CyO","CyO"],"l"]]
 e=Environment(constraints,balancers,markers)
-#updateLists(constraints,balancers,markers)
 fly1=Fly(parseFly("+;Tft,e/CyO;tub Gal80ts")["fly"],e)
 fly2=Fly(parseFly("+/Y;UAS TntG/CyO;+")["fly"],e)
+bottle1=Bottle(fly1,e)
+for fly in bottle1.flies: print fly
 cross1=Cross(fly1,fly2,e)
-print cross1.punnettSquare
+#print cross1.punnettSquare
