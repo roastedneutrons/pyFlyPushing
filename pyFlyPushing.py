@@ -98,7 +98,7 @@ class Chromosome():
 		return ','.join(self.geneList)
 
 class Fly():
-	def __init__(self,genotypeList,environment):
+	def __init__(self,genotype,environment,withChromObj=False):
 		self.genotype=[]
 		self.allGenes=[]
 		self.gender=None
@@ -112,10 +112,16 @@ class Fly():
 		#self.environment=environment
 
 		# # add genes to allGenes, and fill genotype with chromosome objects
-		for chrAList,chrBList in genotypeList:
-			self.allGenes+=chrAList+chrBList
-			self.genotype.append([Chromosome(chrAList,environment),Chromosome(chrBList,environment)])
-		self.allGenes=filter(lambda x: x!='+',self.allGenes)#remove all instances of +
+		if withChromObj:
+			self.genotype=genotype
+			for chrA,chrB in genotype:
+				self.allGenes+=chrA.geneList+chrB.geneList
+			self.allGenes=filter(lambda x: x!='+',self.allGenes)#remove all instances of +
+		else:
+			for chrAList,chrBList in genotype:
+				self.allGenes+=chrAList+chrBList
+				self.genotype.append([Chromosome(chrAList,environment),Chromosome(chrBList,environment)])
+			self.allGenes=filter(lambda x: x!='+',self.allGenes)#remove all instances of +
 
 		# # Find Gender
 		for allosome in self.genotype[0]:
@@ -201,15 +207,27 @@ class Bottle:
 		for i in range(len(fly.genotype)):
 			chrA=fly.genotype[i][0]
 			chrB=fly.genotype[i][1]
+			Y=Chromosome(['Y'],environment)
 			combinations=[]
 			if chrA.cHash == chrB.cHash:
 				combinations=[[chrA,chrA]]
+				if i==0:
+					combinations+=[[chrA,Y]]
 			else:
-				combinations=[[chrA,chrB][chrA,chrA][chrB,chrB]]
-				if i==0 and not(chrA.Y or chrB.Y):
-					Y=Chromosome(['Y'],environment)
-					combinations+=[[chrA,Y][chrB,Y]]
-		print combinations
+				if i==0:
+					if chrA.Y:
+						combinations=[[chrA,chrB],[chrB,chrB]]
+					elif chrB.Y:
+						combinations=[[chrA,chrB],[chrA,chrA]]
+					else:
+						combinations=[[chrA,Y],[chrB,Y],[chrA,chrB],[chrA,chrA],[chrB,chrB]]
+				else:
+					combinations=[[chrA,chrB],[chrA,chrA],[chrB,chrB]]
+			#print combinations
+			chromosomes.append(combinations)
+		genotypes=product(*chromosomes)
+		# print list(genotypes)
+		for genotype in genotypes: self.flies.append(Fly(genotype,environment,withChromObj=True))
 
 def punnettDict(fly1,fly2,child):
 	fly1AxisChr,fly2AxisChr,punnettSqr=punnett(fly1,fly2)
