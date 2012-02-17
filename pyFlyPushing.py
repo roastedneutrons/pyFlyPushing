@@ -45,6 +45,7 @@ def findRescuerPairs(causerList,rawRescuerList):# find a list of rescuers for ea
 	return rescuerList
 
 
+"""
 lList=[]#lethal: list of dicts
 rlList=[]#rescues lethality: list of list of dicts
 sList=[]#sterile: list of dicts
@@ -73,9 +74,34 @@ def updateLists(constraintsList,balancersList,markersList):
 	rlList=findRescuerPairs(lList,rlTemp)	
 	rsList=findRescuerPairs(sList,rsTemp)
 	riList=findRescuerPairs(iList,[])
+"""
+
+class Environment():
+	def __init__(self,constraints,balancers,markers):
+		self.constraints=constraints
+		self.balancers=balancers
+		self.markers=markers
+		
+		self.lList=[]#lethal: list of dicts
+		self.rlList=[]#rescues lethality: list of list of dicts
+		self.sList=[]#sterile: list of dicts
+		self.rsList=[]#rescues sterility: list of list of dicts
+		self.iList=[]#marker interference (cant be rescued)
+		self.riList=[]#kept for uniformity with the other lists
+		rlTemp=[]
+		rsTemp=[]
+		for constraint,tag in constraints:
+			if tag=='l':self.lList.append(listToDict(constraint))
+			elif tag=='rl':rlTemp.append(listToDict(constraint))
+			elif tag=='s':self.sList.append(listToDict(constraint))
+			elif tag=='rs':rsTemp.append(listToDict(constraint))
+			elif tag=='i':self.iList.append(listToDict(constraint))
+		self.rlList=findRescuerPairs(self.lList,rlTemp)	
+		self.rsList=findRescuerPairs(self.sList,rsTemp)
+		self.riList=findRescuerPairs(self.iList,[])
 
 class Chromosome():
-	def __init__(self,geneList):
+	def __init__(self,geneList,environment):
 		self.geneList=geneList
 		self.cHash=sorted(geneList)
 		self.Y=False
@@ -83,18 +109,18 @@ class Chromosome():
 		self.recMarkers=[]
 		self.balancer=False
 		for gene in geneList:
-			if gene in markers:
+			if gene in environment.markers:
 				if gene[0].isupper():
 					self.domMarkers.append(gene)
 				elif gene[0].islower():self.recMarkers.append(gene)
 			if gene=='Y':self.Y=True
-			if gene in balancers:self.balancer=True
+			if gene in environment.balancers:self.balancer=True
 
 	def __str__(self):
 		return ','.join(self.geneList)
 
 class Fly():
-	def __init__(self,genotypeList):
+	def __init__(self,genotypeList,environment):
 		self.genotype=[]
 		self.allGenes=[]
 		self.gender=None
@@ -105,11 +131,12 @@ class Fly():
 		self.lethal=None
 		self.sterile=None
 		self.markerInterference=None
+		#self.environment=environment
 
 		# # add genes to allGenes, and fill genotype with chromosome objects
 		for chrAList,chrBList in genotypeList:
 			self.allGenes+=chrAList+chrBList
-			self.genotype.append([Chromosome(chrAList),Chromosome(chrBList)])
+			self.genotype.append([Chromosome(chrAList,environment),Chromosome(chrBList,environment)])
 		self.allGenes=filter(lambda x: x!='+',self.allGenes)#remove all instances of +
 
 		# # Find Gender
@@ -124,6 +151,7 @@ class Fly():
 			for i in range(len(causerList)):
 				if dictSubset(causerList[i],flyGeneDict):
 					rescued=False
+					print ("rescuerList",rescuerList,"causerList",causerList)
 					for rescuer in rescuerList[i]:
 						if dictSubset(rescuer,flyGeneDict):
 							rescued=True
@@ -133,9 +161,9 @@ class Fly():
 						
 
 		# # look at constraints for lethality(l),sterility(s) and markerInterference(i)
-		self.lethal=checkConstraint(lList,rlList)
-		self.sterile=checkConstraint(sList,rsList)
-		self.markerInterference=checkConstraint(iList,riList)
+		self.lethal=checkConstraint(environment.lList,environment.rlList)
+		self.sterile=checkConstraint(environment.sList,environment.rsList)
+		self.markerInterference=checkConstraint(environment.iList,environment.riList)
 
 		# # Find Phenotype
 		if self.lethal: self.phenotype=['lethal']
@@ -162,32 +190,31 @@ class Fly():
 
 
 class Cross():
-   def __init__(self,fly1,fly2,markers,balancers,constraints):
-      self.fly1=fly1
-      self.fly2=fly2
-      self.markers=markers
-      self.balancers=balancers
-      self.constraints=constraints
-      self.punnettSquare=punnett(fly1,fly2)
-      self.indentifiables=[]#stuff without phenotype clashes
-      self.unidentifiables=[]#stuff with phenotype clashes
+	def __init__(self,fly1,fly2,environment):
+		print "cross"
+		self.fly1=fly1
+		self.fly2=fly2
+		self.environment=environment
+		self.punnettSquare=punnett(fly1,fly2,environment)
+		self.indentifiables=[]#stuff without phenotype clashes
+		self.unidentifiables=[]#stuff with phenotype clashes
 
-def makeFlyFromGametes(gamete1,gamete2):
+def makeFlyFromGametes(gamete1,gamete2,environment):
 	flyG=[]
 	warnings=[]
 	for i in range(len(gamete1)):
 		if (gamete1[i].cHash != gamete2[i].cHash) and not(gamete1[i].balancer or gamete2[i].balancer) and not(gamete1[i].Y or gamete2[i].Y):
 			warnings.append( "Warning! Recombination will occur betweeen "+str(gamete1[i])+" and "+str(gamete2[i]))
 		flyG.append([gamete1[i].geneList,gamete2[i].geneList])
-	return warnings,Fly(flyG)
+	return warnings,Fly(flyG,environment)
 
 
-def punnett(fly1,fly2):
+def punnett(fly1,fly2,environment):
 	punnettSquare=[]
 	for gamete1 in fly1.gametes:
 		flyRow=[]
 		for gamete2 in fly2.gametes:
-			warnings,fly=makeFlyFromGametes(gamete1,gamete2)
+			warnings,fly=makeFlyFromGametes(gamete1,gamete2,environment)
 			flyRow.append({'warnings':warnings,
 								'Fly':fly})
 		punnettSquare.append(flyRow)

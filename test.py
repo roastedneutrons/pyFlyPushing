@@ -96,8 +96,9 @@ def parseFly(f,gender=None):
 markers=["Tft","e","CyO"]
 balancers=["CyO"]
 constraints=[[["CyO","CyO"],"l"]]
-updateLists(constraints,balancers,markers)
-fly1=Fly(parseFly("+;Tft,e/CyO;tub Gal80ts")["fly"])
-fly2=Fly(parseFly("+/Y;UAS TntG/CyO;+")["fly"])
-cross1=Cross(fly1,fly2,markers,balancers,constraints)
+e=Environment(constraints,balancers,markers)
+#updateLists(constraints,balancers,markers)
+fly1=Fly(parseFly("+;Tft,e/CyO;tub Gal80ts")["fly"],e)
+fly2=Fly(parseFly("+/Y;UAS TntG/CyO;+")["fly"],e)
+cross1=Cross(fly1,fly2,e)
 print cross1.punnettSquare
