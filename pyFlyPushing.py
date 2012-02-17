@@ -198,19 +198,18 @@ class Bottle:
 	def __init__(self,fly,environment):
 		self.flies=[]
 		chromosomes=[]
-		for chrA,chrB in fly.genotype:
+		for i in range(len(fly.genotype)):
+			chrA=fly.genotype[i][0]
+			chrB=fly.genotype[i][1]
+			combinations=[]
 			if chrA.cHash == chrB.cHash:
-				chromosomes.append([chrA])
+				combinations=[[chrA,chrA]]
 			else:
-				chromosomes.append([chrA,chrB])
-		if not(fly.genotype[0][0].Y or fly.genotype[0][1].Y):
-			chromosomes[0].append(Chromosome(['Y'],environment))
-		gametes=list(product(*chromosomes))
-		#print list(gametes)
-		for i in range(len(gametes)):
-			for j in range(len(gametes)):
-				warnings,fly=makeFlyFromGametes(gametes[i],gametes[j],environment)
-				self.flies.append(fly)
+				combinations=[[chrA,chrB][chrA,chrA][chrB,chrB]]
+				if i==0 and not(chrA.Y or chrB.Y):
+					Y=Chromosome(['Y'],environment)
+					combinations+=[[chrA,Y][chrB,Y]]
+		print combinations
 
 def punnettDict(fly1,fly2,child):
 	fly1AxisChr,fly2AxisChr,punnettSqr=punnett(fly1,fly2)
