@@ -169,8 +169,10 @@ class Cross():
       self.balancers=balancers
       self.constraints=constraints
       self.punnettSquare=punnett(fly1,fly2)
+      self.indentifiables=[]#stuff without phenotype clashes
+      self.unidentifiables=[]#stuff with phenotype clashes
 
-def cross(gamete1,gamete2):
+def makeFlyFromGametes(gamete1,gamete2):
 	flyG=[]
 	warnings=[]
 	for i in range(len(gamete1)):
@@ -185,7 +187,7 @@ def punnett(fly1,fly2):
 	for gamete1 in fly1.gametes:
 		flyRow=[]
 		for gamete2 in fly2.gametes:
-			warnings,fly=cross(gamete1,gamete2)
+			warnings,fly=makeFlyFromGametes(gamete1,gamete2)
 			flyRow.append({'warnings':warnings,
 								'Fly':fly})
 		punnettSquare.append(flyRow)

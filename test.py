@@ -93,11 +93,11 @@ def parseFly(f,gender=None):
 		return parseErr("Wrong Gender, Check Y",f)
 	return {"fly":ret} 
 
-
-fly1=Fly(parseFly("+;Tft,e/CyO;tub Gal80ts")["fly"])
-fly2=Fly(parseFly("+/Y;UAS TntG/CyO;+")["fly"])
 markers=["Tft","e","CyO"]
 balancers=["CyO"]
-constraints=[["CyO","CyO"],"l"]
+constraints=[[["CyO","CyO"],"l"]]
+updateLists(constraints,balancers,markers)
+fly1=Fly(parseFly("+;Tft,e/CyO;tub Gal80ts")["fly"])
+fly2=Fly(parseFly("+/Y;UAS TntG/CyO;+")["fly"])
 cross1=Cross(fly1,fly2,markers,balancers,constraints)
 print cross1.punnettSquare
