@@ -239,7 +239,9 @@ class Bottle:
 		genotypes=product(*chromosomes)
 		# print list(genotypes)
 		for genotype in genotypes:
-			self.flies.append(Fly(genotype,environment,withChromObj=True))
+			fly=Fly(genotype,environment,withChromObj=True)
+			self.flies.append(fly)
+			
 
 def punnettDict(fly1,fly2,child):
 	fly1AxisChr,fly2AxisChr,punnettSqr=punnett(fly1,fly2)
