@@ -37,7 +37,7 @@ def parseFly(f,gender=None):
 	gene = ""
 	chromosome = []
 	pair = []
-	f = f.replace(" ","")
+	#f = f.replace(" ","")
 	state = 0
 	openBrackets = 0
 	frag = ""
@@ -100,6 +100,6 @@ e=Environment(constraints,balancers,markers)
 fly1=Fly(parseFly("+;Tft,e/CyO;tub Gal80ts")["fly"],e)
 fly2=Fly(parseFly("+/Y;UAS TntG/CyO;+")["fly"],e)
 bottle1=Bottle(fly1,e)
-for fly in bottle1.flies: print fly
+for fly in bottle1.flies: print fly,fly.lethal
 cross1=Cross(fly1,fly2,e)
 #print cross1.punnettSquare

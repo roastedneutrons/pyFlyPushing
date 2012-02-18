@@ -53,12 +53,20 @@ def makeFlyFromGametes(gamete1,gamete2,environment):
 		flyG.append([gamete1[i].geneList,gamete2[i].geneList])
 	return warnings,Fly(flyG,environment)
 
+def _deSpace(lst):#so taht accidental spaces entered by user doesnt mess up stuff
+	ret=[]
+	for item in lst:
+		#print item
+		ret.append(item.replace(" ",""))
+	return ret
 
 class Environment():
 	def __init__(self,constraints,balancers,markers):
-		self.constraints=constraints
-		self.balancers=balancers
-		self.markers=markers
+		self.balancers=_deSpace(balancers)
+		self.markers=_deSpace(markers)
+		self.constraints=[]
+		for constraint,tag in constraints:
+			self.constraints.append([_deSpace(constraint),tag])
 		
 		self.lList=[]#lethal: list of dicts
 		self.rlList=[]#rescues lethality: list of list of dicts
@@ -81,18 +89,21 @@ class Environment():
 class Chromosome():
 	def __init__(self,geneList,environment):
 		self.geneList=geneList
-		self.cHash=sorted(geneList)
+		self.cHash=sorted(_deSpace(geneList))
 		self.Y=False
 		self.domMarkers=[]
 		self.recMarkers=[]
 		self.balancer=False
+		#deSpacedGeneList=[]
 		for gene in geneList:
+			#deSpacedGeneList.append(gene.replace(" ",""))#So that accidental spaces entered by user doesnt mess up stuff
 			if gene in environment.markers:
 				if gene[0].isupper():
 					self.domMarkers.append(gene)
 				elif gene[0].islower():self.recMarkers.append(gene)
 			if gene=='Y':self.Y=True
 			if gene in environment.balancers:self.balancer=True
+		#self.cHash=sorted(deSpacedGeneList)
 
 	def __str__(self):
 		return ','.join(self.geneList)
@@ -227,7 +238,8 @@ class Bottle:
 			chromosomes.append(combinations)
 		genotypes=product(*chromosomes)
 		# print list(genotypes)
-		for genotype in genotypes: self.flies.append(Fly(genotype,environment,withChromObj=True))
+		for genotype in genotypes:
+			self.flies.append(Fly(genotype,environment,withChromObj=True))
 
 def punnettDict(fly1,fly2,child):
 	fly1AxisChr,fly2AxisChr,punnettSqr=punnett(fly1,fly2)
