@@ -194,7 +194,7 @@ class Cross():
 		self.fly2=fly2
 		self.environment=environment
 		self.punnettSquare=self.punnett(fly1,fly2)
-		self.indentifiables=[]#stuff without phenotype clashes
+		self.identifiables=[]#stuff without phenotype clashes
 		self.unidentifiables=[]#stuff with phenotype clashes
 
 	
@@ -214,6 +214,7 @@ class Cross():
 class Bottle:
 	def __init__(self,fly,environment):
 		self.flies=[]
+		self.deadFlies=[]
 		chromosomes=[]
 		for i in range(len(fly.genotype)):
 			chrA=fly.genotype[i][0]
@@ -240,7 +241,10 @@ class Bottle:
 		# print list(genotypes)
 		for genotype in genotypes:
 			fly=Fly(genotype,environment,withChromObj=True)
-			self.flies.append(fly)
+			if fly.lethal:
+				self.deadFlies.append(fly)
+			else:
+				self.flies.append(fly)
 			
 
 def punnettDict(fly1,fly2,child):
